@@ -1252,8 +1252,13 @@ CohortsData$round <- ordered(CohortsData$round,
                              levels = c(2,3,4,5),
                              labels = c("1990", "1999", "2008", "2017"))
 
-CohortsData2 <- merge(CohortsData, HDIData, by = c("Country", "round"))
-str(CohortsData2$round)
+HDIData2 = HDIData |> mutate(round = case_when(round == 2 ~ "1990",
+                                              round == 3 ~ "1999",
+                                              round == 4 ~ "2008",
+                                              round == 5 ~ "2017"))
+
+CohortsData2 <- merge(CohortsData, HDIData2, by = c("Country", "round"))
+
 CohortsData21 <- CohortsData2 %>% subset(round == "1990") %>% mutate(HDI = cut(HDI, 3, labels = c("lowest", "middle", "highest")))
 CohortsData22 <- CohortsData2 %>% subset(round == "1999") %>% mutate(HDI = cut(HDI, 3, labels = c("lowest", "middle", "highest")))
 CohortsData23 <- CohortsData2 %>% subset(round == "2008") %>% mutate(HDI = cut(HDI, 3, labels = c("lowest", "middle", "highest")))
@@ -1287,25 +1292,141 @@ CohEcon <- CohortsData2 %>% subset(domain == "Economic")
 #svg("IP Cohorts.svg", family = "cmr10", height = 5, width = 10)
 #Coh1P + Coh2P
 #dev.off()
-CohCult2 <- CohCult |> mutate(coh2 = case_when(cohort == "15-24" ~ 0,
-                                               cohort == "25-34" ~ 1,
-                                               cohort == "35-44" ~ 2,
-                                               cohort == "45-54" ~ 3,
-                                               cohort == "55-64" ~ 4,
-                                               cohort == "65+" ~ 5))
+
+#CohCult2 <- CohCult |> mutate(coh2 = case_when(cohort == "15-24" ~ 0,
+#                                               cohort == "25-34" ~ 1,
+#                                               cohort == "35-44" ~ 2,
+#                                               cohort == "45-54" ~ 3,
+#                                               cohort == "55-64" ~ 4,
+#                                              cohort == "65+" ~ 5))
 
 T1 <- lmer(cor ~ cohort + round + cohort*round*HDI + (1|Country), data = CohCult)
 
-svg("IP Cohorts.svg", height = 5, width = 8)
-plot_model(T1, type = "pred", terms = c("cohort", "round[1990, 2017]", "HDI[lowest, highest]"),
-           colors = c("deepskyblue4", "grey20"), title = "Cohort Differences in Culture Wars Polarization over Time and Development",
-           show.legend = FALSE, axis.title = c("Cohorts", "Polarization"),
-           dot.size = 3, line.size = 1) + 
-  theme(text = element_text(family = "cmr10", size = 14))
+new_data <- expand.grid(
+  cohort = unique(CohCult$cohort),
+  round = unique(CohCult$round),
+  HDI = unique(CohCult$HDI),
+  Country = unique(CohCult$Country)
+)
+
+pred <- predict(T1, newdata = new_data, re.form = NA, se.fit = TRUE)
+new_data$predicted <- pred$fit
+new_data$se.fit <- pred$se.fit
+new_data <- new_data %>%
+  mutate(
+    lower = predicted - 1.96 * se.fit,
+    upper = predicted + 1.96 * se.fit
+  )
+
+
+new_data = new_data |> mutate(HDI = case_when(HDI == "highest" ~ "Most Developed",
+                                              HDI == "lowest" ~ "Least Developed",
+                                              HDI == "middle" ~ "middle"))
+
+svg("Figures/IP Cohorts.svg", height = 5, width = 8, family = "cmr10")
+ggplot(new_data |> filter(round == "2017" | round == "1990") |> filter(!HDI == "middle"), aes(x = cohort, y = predicted, color = round)) +
+  geom_point(size = 2) +
+  geom_line(aes(y = predicted, group = round), size = .9) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, group = round, fill = round), alpha = 0.2) +
+  facet_wrap(~HDI) +
+  labs(title = "",
+       x = "Age Cohort",
+       y = "",
+       color = "Round") +
+  scale_color_manual(values = c("2017" = "navy", "1990" = "firebrick4")) +
+  scale_fill_manual(values = c("2017" = "navy", "1990" = "firebrick4")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    strip.text = element_text(size = 10),
+    legend.position = "none",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9)
+  )
 dev.off()
 
-arm::display(T1)
-?plot_model
+
+
+CohortsData3 <- merge(CohortsData, denom_data, by = c("Country"))
+
+CohortsData31 <- CohortsData3 %>% subset(round == "1990") %>% mutate(DD = cut(DD, 3, labels = c("Protestant", "middle", "Catholic")))
+CohortsData32 <- CohortsData3 %>% subset(round == "1999") %>% mutate(DD = cut(DD, 3, labels = c("Protestant", "middle", "Catholic")))
+CohortsData33 <- CohortsData3 %>% subset(round == "2008") %>% mutate(DD = cut(DD, 3, labels = c("Protestant", "middle", "Catholic")))
+CohortsData34 <- CohortsData3 %>% subset(round == "2017") %>% mutate(DD = cut(DD, 3, labels = c("Protestant", "middle", "Catholic")))
+
+CohortsData3 <- bind_rows(CohortsData31, CohortsData32,
+                          CohortsData33, CohortsData34)
+rm(CohortsData31, CohortsData32, CohortsData33, CohortsData34)
+
+CohortsData3 %<>% mutate(cohort = as.factor(case_when(cohort == 1 ~ "15-24",
+                                                      cohort == 2 ~  "25-34",
+                                                      cohort == 3 ~  "35-44",
+                                                      cohort == 4 ~  "45-54",
+                                                      cohort == 5 ~  "55-64",
+                                                      cohort == 6 ~ "65+")))
+
+
+
+Cohort2Cult <- CohortsData3 %>% subset(domain == "Cultural")
+Cohort2Econ <- CohortsData3 %>% subset(domain == "Economic")
+
+T1b <- lmer(cor ~ cohort + round + cohort*round*DD + (1|Country), data = Cohort2Cult)
+
+new_data3 <- expand.grid(
+  cohort = unique(Cohort2Cult$cohort),
+  round = unique(Cohort2Cult$round),
+  DD = unique(Cohort2Cult$DD),
+  Country = unique(Cohort2Cult$Country)
+)
+
+pred <- predict(T1b, newdata = new_data3, re.form = NA, se.fit = TRUE)
+new_data3$predicted <- pred$fit
+new_data3$se.fit <- pred$se.fit
+new_data3 <- new_data3 %>%
+  mutate(
+    lower = predicted - 1.96 * se.fit,
+    upper = predicted + 1.96 * se.fit
+  )
+
+svg("Figures/IP Cohorts2.svg", height = 5, width = 8, family = "cmr10")
+ggplot(new_data3 |> filter(round == "2017" | round == "1990") |> filter(!DD == "middle"), aes(x = cohort, y = predicted, color = round)) +
+  geom_point(size = 2) +
+  geom_line(aes(y = predicted, group = round), size = .9) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, group = round, fill = round), alpha = 0.2) +
+  facet_wrap(~DD) +
+  labs(title = "",
+       x = "Age Cohort",
+       y = "",
+       color = "Round") +
+  scale_color_manual(values = c("2017" = "navy", "1990" = "firebrick4")) +
+  scale_fill_manual(values = c("2017" = "navy", "1990" = "firebrick4")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    strip.text = element_text(size = 10),
+    legend.position = "none",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9)
+  )
+dev.off()
+
+
+
+
+
+
+
+
+
+
 #arm::display(T1)
 T1P <- plot_model(T1, type = "pred", terms = "cohort", title = "Culture Wars",
                   dot.size = 3, line.size = 1.2,

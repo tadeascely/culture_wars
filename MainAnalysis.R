@@ -64,10 +64,8 @@ empty <- ggplot()+geom_point(aes(1,1), colour="white")+
         axis.title.x=element_blank(), axis.title.y=element_blank())
 
 scatter <- ggplot(DATA2D, aes(HDI, DD)) + geom_point(alpha = 0.5) +
-  ylab("Religious Culture") + xlab("Human Development Index") + ggrepel::geom_text_repel(aes(label = Country), size = 5) +
-  theme(axis.text.x = element_text(size = 16),
-        axis.text.y = element_text(size = 16),
-        text = element_text(size = 14)) + theme_minimal() + xlim(0.7, 1) + ylim(-1.2, 1.2)
+  ylab("Religious Culture") + xlab("Human Development Index") + ggrepel::geom_text_repel(aes(label = Country), size = 4) +
+  theme(text = element_text(size = 14)) + theme_minimal() + xlim(0.7, 1) + ylim(-1.2, 1.2)
 
 
 hist_right <- ggplot(DATA, aes(DD)) + geom_histogram(fill = "gray70", colour = "gray60", alpha = 0.5,
@@ -75,7 +73,7 @@ hist_right <- ggplot(DATA, aes(DD)) + geom_histogram(fill = "gray70", colour = "
   labs(x = "", y = "") + coord_flip()
 #hist_right
 
-svg("Figures/predictors.svg", height = 7, width = 8, family = "cmr10")
+svg("Figures/predictors.svg", height = 5, width = 6, family = "cmr10")
 grid.arrange(hist_top, empty, scatter, hist_right, ncol=2, nrow=2, widths=c(4, 1), heights=c(1, 4))
 dev.off()
 
