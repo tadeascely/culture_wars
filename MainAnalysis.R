@@ -225,36 +225,36 @@ MC2 <- lmer(cor ~ round + DD + HDI + DD*round + HDI*round + (round | Country), d
 
 
 
-svg("ReligintCult.svg", family = "cmr10", height = 6, width = 8)
+svg("Figures/ReligintCult.svg", family = "cmr10", height = 6, width = 8)
 interflex::interflex(estimator = "binning", Y = "cor", D = "religdiscrete", X = "round", data = DATAcult2, theme.bw = TRUE,
                      show.grid = TRUE, na.rm = TRUE, treat.type = "discrete", pool = TRUE, base = "Protestant",
                      ylab = "Effect on Polarization (Culture)", xlab = "Change in nine-year intervals", legend.title = "Religious culture",
-                     Xdistr = "none", color = c("blue", "gray2"), bin.labs = FALSE,
+                     Xdistr = "none", color = c("black", "navy", "firebrick4"), bin.labs = FALSE,
                      cex.lab = 1.5, cex.axis = 1.5, cex.sub = 1.6, ylim = c(-0.2, 0.2), show.subtitles = FALSE)
 dev.off()
 
-svg("ReligintEcon.svg", family = "cmr10", height = 6, width = 8)
+svg("Figures/ReligintEcon.svg", family = "cmr10", height = 6, width = 8)
 interflex::interflex(estimator = "binning", Y = "cor", D = "religdiscrete", X = "round", data = DATAecon2, theme.bw = TRUE,
                      show.grid = TRUE, na.rm = TRUE, treat.type = "discrete", pool = TRUE, base = "Protestant",
                      ylab = "Effect on Polarization (Economy)", xlab = "Change in nine-year intervals", legend.title = "Religious culture",
-                     Xdistr = "none", color = c("blue", "gray2"), bin.labs = FALSE,
+                     Xdistr = "none", color = c("black", "navy", "firebrick4"), bin.labs = FALSE,
                      cex.lab = 1.5, cex.axis = 1.5, cex.sub = 1.6, ylim = c(-0.2, 0.2), show.subtitles = FALSE)
 dev.off()
 
 
-svg("HDIintCult.svg", family = "cmr10", height = 6, width = 8)
+svg("Figures/HDIintCult.svg", family = "cmr10", height = 6, width = 8)
 interflex::interflex(estimator = "binning", Y = "cor", D = "HDI", X = "round", data = DATAcult3, theme.bw = TRUE,
                      show.grid = TRUE, na.rm = TRUE, treat.type = "discrete", base = "lowest", pool = TRUE,
                      ylab = "Effect on Polarization (Culture)", xlab = "Change in nine-year intervals",
-                     Xdistr = "none", bin.labs = FALSE, color = c("blue", "gray2"), legend.title = "Human Development Index",
+                     Xdistr = "none", bin.labs = FALSE, color = c("black", "navy", "firebrick4"), legend.title = "Human Development Index",
                      cex.lab = 1.5, cex.axis = 1.5, cex.sub = 1.6, ylim = c(-0.2, 0.2), show.subtitles = FALSE)
 dev.off()
 
-svg("HDIintEcon.svg", family = "cmr10", height = 6, width = 8)
+svg("Figures/HDIintEcon.svg", family = "cmr10", height = 6, width = 8)
 interflex::interflex(estimator = "binning", Y = "cor", D = "HDI", X = "round", data = DATAecon3, theme.bw = TRUE,
                      show.grid = TRUE, na.rm = TRUE, treat.type = "discrete", base = "lowest", pool = TRUE,
                      ylab = "Effect on Polarization (Economy)", xlab = "Change in nine-year intervals",
-                     Xdistr = "none", bin.labs = FALSE, color = c("blue", "gray2"), legend.title = "Human Development Index",
+                     Xdistr = "none", bin.labs = FALSE, color = c("black", "navy", "firebrick4"), legend.title = "Human Development Index",
                      cex.lab = 1.5, cex.axis = 1.5, cex.sub = 1.6, ylim = c(-0.2, 0.2), show.subtitles = FALSE)
 dev.off()
 
