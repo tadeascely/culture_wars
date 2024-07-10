@@ -208,3 +208,89 @@ arm::display(Rep2M0C)
 arm::display(Rep2M0E)
 
 
+
+
+#####
+#Mixed
+#####
+
+create_plot3 <- function(model, country_data, country_name) {
+  country_filtered <- country_data %>%
+    filter(Country == country_name) %>%
+    dplyr::filter(domain == "Across Domains")
+  
+  pred <- predict(model, newdata = country_filtered, interval = "confidence")
+  
+  country_filtered <- country_filtered %>%
+    mutate(
+      fit = pred[, "fit"],
+      lwr = pred[, "lwr"],
+      upr = pred[, "upr"]
+    )
+  
+  ggplot(country_filtered |> dplyr::filter(domain == "Across Domains"), aes(x = round, y = cor)) +
+    geom_point(position = position_jitter(width = 0.2, height = 0), size = 2, alpha = 0.1) +
+    geom_errorbar(aes(ymin = lwr, ymax = upr), width = 0.4, size = .9, color = "firebrick4") +
+    labs(title = country_name,
+         x = "",
+         y = "") +  theme_minimal() + 
+    theme(
+      legend.position = "none",
+      plot.title = element_text(size = 11, hjust = 0.5, face = "bold"),
+      axis.text.x = element_text(size = 9),
+      axis.text.y = element_text(size = 9)
+    ) +
+    scale_y_continuous(breaks = c(-0.3,-0.2,- 0.1, 0, 0.1, 0.2, 0.3), limits = c(-0.35, 0.35)) +
+    scale_x_discrete(limits = levels(country_filtered$round))
+}
+
+models2 <- list(
+  C_CZ = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Czech Republic")),
+  C_SK = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Slovakia")),
+  C_HU = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Hungary")),
+  C_PL = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Poland")),
+  C_FR = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "France")),
+  C_GE = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Germany")),
+  C_IR = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Ireland")),
+  C_NL = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Netherlands")),
+  C_BE = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Belgium")),
+  C_AU = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Austria")),
+  C_FI = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Finland")),
+  C_SW = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Sweden")),
+  C_NO = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Norway")),
+  C_IC = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Iceland")),
+  C_DN = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Denmark")),
+  C_IT = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Italy")),
+  C_SP = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Spain")),
+  C_PT = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Portugal")),
+  C_MT = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Malta"))
+)
+
+reordered_models <- models2[order(names(models2))]
+
+plots3 <- lapply(seq_along(reordered_models), function(i) {
+  create_plot3(reordered_models[[i]], Countries_IsAlC, country_names[i])
+})
+
+
+
+# Combine all plots using patchwork
+combined_plot <- wrap_plots(plots3, nrow = 5, ncol = 4) +
+  plot_layout(guides = "collect") &
+  theme(
+    plot.margin = margin(1, 1, 1, 1, "pt")  # Reduce margins to minimize space between plots
+  )
+
+svg("Figures/Mixed.svg", family = "cmr10", height = 12, width = 9)
+combined_plot
+dev.off()
+
+
+
+C_PT <- lm(cor ~ round, data = Countries_IsAlC |> filter(domain == "Cultural"), subset = (Country == "Portugal"))
+plot_model(C_PT, type = "pred", terms = "round")
+
+C_PL = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Poland"))
+C_NO = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Norway"))
+C_IC = lm(cor ~ round, data = Countries_IsAlC|> dplyr::filter(domain == "Across Domains"), subset = (Country == "Iceland"))
+

@@ -193,7 +193,15 @@ svg("Figures/IP_Description.svg", family = "cmr10", height = 12, width = 9)
 print(combined_plot)
 dev.off()
 
+combined_plot_pres <- wrap_plots(plots, nrow = 4) +
+  plot_layout(guides = "collect") &
+  theme(
+    plot.margin = margin(1, 1, 1, 1, "pt")  # Reduce margins to minimize space between plots
+  )
 
+svg("Figures/IP_Description_pres.svg", family = "cmr10", height = 6, width = 10)
+combined_plot_pres
+dev.off()
 
 #####
 #Models

@@ -137,6 +137,8 @@ models2 <- list(
 #country_names <- c("Austria", "Belgium", "Czech Republic", "Denmark", "Finland", "France", "Germany", "Hungary", "Iceland", 
 #                   "Ireland", "Italy", "Malta", "Netherlands", "Norway", "Poland", "Portugal", "Slovakia", "Spain", "Sweden")
 
+summary(models2$C2_CZ)
+
 
 create_plot2 <- function(model, country_data, country_name) {
   country_data <- final_results_df[final_results_df$Country == country_name, ]
@@ -183,12 +185,23 @@ combined_plot <- wrap_plots(plots2, nrow = 5, ncol = 4) +
   theme(
     plot.margin = margin(1, 1, 1, 1, "pt")  # Reduce margins to minimize space between plots
   )
-combined_plot
+
 
 svg("Figures/IP_Description2.svg", family = "cmr10", height = 11, width = 9)
 combined_plot
 dev.off()
 
+# Combine all plots using patchwork
+combined_plot_pres <- wrap_plots(plots2, nrow = 4) +
+  plot_layout(guides = "collect", axes = "collect_y") &
+  theme(
+    plot.margin = margin(1, 1, 1, 1, "pt")  # Reduce margins to minimize space between plots
+  )
+
+
+svg("Figures/IP_Description2_pres.svg", family = "cmr10", height = 6, width = 10)
+combined_plot_pres
+dev.off()
 
 
 final_results_df$S002EVS
@@ -234,10 +247,8 @@ rm(round1, round2, round3, round4)
 
 
 
-NewC <- lmer(Correlation ~ religdiscrete + HDI +  (1 | Country), data = DATAcult3)
-NewE <- lmer(Correlation ~ religdiscrete + HDI + (1 | Country), data = DATAecon3)
-
-arm::display(NewC)
+NewC <- lmer(Correlation ~ religdiscrete + HDI + NetMper1000 + GINI + KOFGI +  (1 | Country), data = DATAcult3)
+NewE <- lmer(Correlation ~ religdiscrete + HDI + NetMper1000 + GINI + KOFGI + (1 | Country), data = DATAecon3)
 
 sjPlot::tab_model(NewC, show.se = T)
 sjPlot::tab_model(NewE)
