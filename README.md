@@ -1,7 +1,8 @@
 # New Threat of Culture Wars
 
-**Important: Before running the scripts, make sure to download the EVS Trendfile into the data folder**
+**Important: Before running the scripts, make sure to download the EVS Trendfile into the data folder**:
 [European Values Survey Integrated Dataset (EVS 1981-2008)](https://doi.org/10.4232/1.14021)
+
 This dataset is too large to be uploaded on GitHub.
 
 The code for this analysis was, in some cases, simplified and comes from the following sources:
@@ -15,7 +16,6 @@ For more information on the measurements used, please refer to the main paper.
 
 **Note**: Before running the code to analyze the data and generate plots, it is required that you run the **data transformation file** for each of the main analyses:
 - Issue alignment
-- Ideological identity alignment
 - Cohort analysis
 
 ## Producing Figures from the Main Paper
@@ -23,8 +23,8 @@ For more information on the measurements used, please refer to the main paper.
 To generate the figures for the main paper, refer to the following files:
 
 - *Issue Alignment - Main Analysis.R*: Contains code for **Figure 3**, **Figure 4**, and **Figure 6**
-- *diagram.R*: Contains code for **Figure 1** and **Figure 2**
-- *Ideological Identity Alignment - Main Analysis.R*: Contains code for **Figure 5**
+- *diagrams.R*: Contains code for **Figure 1** and **Figure 2**
+- *Ideological Identity Alignment.R*: Contains code for **Figure 5**
 - *Cohort Analysis.R*: Contains code for **Figure 7**
 
 The transformation and analysis were performed using **R version 4.3.2 (2023-10-31 ucrt)**.
