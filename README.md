@@ -1,5 +1,9 @@
 # New Threat of Culture Wars
 
+**Important: Before running the scripts, make sure to download the EVS Trendfile into the data folder**
+[European Values Survey Integrated Dataset (EVS 1981-2008)](https://doi.org/10.4232/1.14021)
+This dataset is too large to be uploaded on GitHub.
+
 The code for this analysis was, in some cases, simplified and comes from the following sources:
 
 - **World Bank**: Gini index, Globalization indices, and Migration data
