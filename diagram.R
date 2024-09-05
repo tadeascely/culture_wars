@@ -1,5 +1,8 @@
 library(DiagrammeR)
 
+
+# Figure 1 ----------------------
+
 grViz("
   digraph process {
     graph [rankdir = LR] # Change the rank direction to Left-to-Right
@@ -75,8 +78,9 @@ grViz("
 ")
 
 
+# Figure 2 ----------------------
 
-library(DiagrammeR)
+#Ideological identity alignment
 
 grViz("
   digraph process {
@@ -110,6 +114,7 @@ grViz("
   }
 ")
 
+#Issue alignment
 
 grViz("
   digraph process {
