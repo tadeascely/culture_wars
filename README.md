@@ -1,7 +1,7 @@
 # New Threat of Culture Wars
 
-**Important: Before running the scripts, make sure to download the EVS Trendfile into the data folder**:
-[European Values Survey Integrated Dataset (EVS 1981-2008)](https://doi.org/10.4232/1.14021)
+**The data come from the European Values Study**:
+[European Values Survey Integrated Dataset (EVS 1981-2008)](https://doi.org/10.4232/1.14021). The version I worked with is uploaded to the data folder via git LFS.
 
 This dataset is too large to be uploaded on GitHub.
 
