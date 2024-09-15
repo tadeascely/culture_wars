@@ -3,8 +3,6 @@
 **The data come from the European Values Study**:
 [European Values Survey Integrated Dataset (EVS 1981-2008)](https://doi.org/10.4232/1.14021). The version I worked with is uploaded to the data folder via git LFS.
 
-This dataset is too large to be uploaded on GitHub.
-
 The code for this analysis was, in some cases, simplified and comes from the following sources:
 
 - **World Bank**: Gini index, Globalization indices, and Migration data
