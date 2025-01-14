@@ -50,6 +50,18 @@ EVSBirth %<>% dplyr::select("E035", "E036", "E037", "E038", "E039", "E042", "F11
 rounds <- 2:5
 countries <- c(205, 210, 211, 220, 230, 235, 255, 290, 305, 310, 316, 317, 325, 338, 375, 380, 385, 390, 395)
 
+# Preparatory function to flatten the correlation matrix
+
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+  )
+}
+
 # Function to compute correlation matrix for a dataset
 compute_rcorr_generic <- function(dataset, round, country) {
   dataset_subset <- dataset %>%

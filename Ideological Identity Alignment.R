@@ -23,6 +23,12 @@ Cultural <- c("F118", "F119", "F120", "F121", "F122", "F123", "F126", "F132", "F
 Countries <- c("290", "310", "316", "317", "205", "210", "211", "220", "230", "235", "255", 
                "305", "325", "338", "375", "380", "385", "390", "395")  
 
+# Define a vector of country names------------------------------------------
+country_names <- c("Austria", "Belgium", "Czech Republic", "Denmark", "Finland", "France", 
+                   "Germany", "Hungary", "Iceland", "Ireland", "Italy", "Malta", 
+                   "Netherlands", "Norway", "Poland", "Portugal", "Slovakia", "Spain", 
+                   "Sweden")
+
 # Filter dataset for selected rounds--------------------------------------
 EVS_ideol = EVS_ideol %>%
   filter(S002EVS > 1 & S002EVS < 6) %>%  # Keep only rounds 2 to 5

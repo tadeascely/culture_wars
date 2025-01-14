@@ -45,6 +45,19 @@ EVS <- EVS %>% dplyr::select("E035", "E036", "E037", "E038", "E039", "E042", "F1
 Economic <- c("E035", "E036", "E037", "E038", "E039", "E042")
 Cultural <- c("F118", "F119", "F120", "F121", "F122", "F123", "F126", "F132", "F144_01")
 
+# Preparatory function to flatten the correlation matrix
+
+flattenCorrMatrix <- function(cormat, pmat) {
+  ut <- upper.tri(cormat)
+  data.frame(
+    row = rownames(cormat)[row(cormat)[ut]],
+    column = rownames(cormat)[col(cormat)[ut]],
+    cor  =(cormat)[ut],
+    p = pmat[ut]
+  )
+}
+
+
 # Function to calculate and flatten correlation matrix, skipping insufficient data
 get_flatten_corr <- function(data, round, country_code, country_name) {
   # Subset the data
