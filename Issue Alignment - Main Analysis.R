@@ -133,10 +133,11 @@ ME <- lmer(
 )
 
 # Summary for the Cultural domain model-----------------
-tab_model(MC) 
+arm::display(MC)
+
 
 # Summary for the Economic domain model-----------------
-tab_model(ME)
+arm::display(ME)
 
 
 

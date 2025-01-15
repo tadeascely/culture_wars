@@ -2,7 +2,7 @@
 #Install all required packages
 
 packages <- c("haven", "tidyverse", "Hmisc", "lme4", "svglite", "sjmisc", 
-              "sjPlot", "influence.ME", "patchwork", "magrittr", "gridExtra")
+              "sjPlot", "influence.ME", "patchwork", "magrittr", "gridExtra", "interflex")
 
 # Check if each package is installed, install if missing, and load it
 for (pkg in packages) {
@@ -25,6 +25,7 @@ library(influence.ME)
 library(patchwork)
 library(magrittr)
 library(gridExtra)
+library(interflex)
 
 #import dataset
 EVS_Trendfile <- read_dta("data/ZA7503_v2-0-0.dta")

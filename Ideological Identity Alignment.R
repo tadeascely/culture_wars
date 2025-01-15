@@ -217,7 +217,7 @@ DATA2 <- merge(DAT2, HDIData, by = c("Country", "S002EVS"))
 DATA2 %<>% filter(domain != "Across Domains")
 
 # Clean up 'round' column and merge with additional datasets--------------
-DATA2 = DATA2 |> select(!round.y) |> rename(round = round.x)
+DATA2 = DATA2 |> select(!round.x) |> rename(round = round.y)
 DATA2 <- merge(DATA2, Gini, by = c("Country", "round"), all.x = TRUE)
 DATA2 <- merge(DATA2, NetM, by = c("Country", "round"), all.x = TRUE)
 DATA2 <- merge(DATA2, Glob, by = c("Country", "round"), all.x = TRUE)
@@ -252,5 +252,5 @@ NewC <- lmer(Correlation ~ religdiscrete + HDI + NetMper1000 + GINI + KOFGI +  (
 NewE <- lmer(Correlation ~ religdiscrete + HDI + NetMper1000 + GINI + KOFGI + (1 | Country), data = DATAecon3)
 
 # Summary for the Cultural and Economic domain model-----------------
-sjPlot::tab_model(NewC, show.se = T)
-sjPlot::tab_model(NewE)
+arm::display(NewC)
+arm::display(NewE)
