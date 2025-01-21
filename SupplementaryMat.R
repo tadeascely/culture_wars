@@ -1,5 +1,7 @@
 source("Issue Alignment - Data Transformation.R")
 source("Issue Alignment - Main Analysis.R")
+library(purrr)
+library(Hmisc)
 
 #####
 #Appendix 2
@@ -263,6 +265,7 @@ arm::display(RepM0C)
 arm::display(RepM0E)
 
 # Table 2: Model Estimates with Denomination Differences among Respondents----------------------
+countries <- c(205, 210, 211, 220, 230, 235, 255, 290, 305, 310, 316, 317, 325, 338, 375, 380, 385, 390, 395)
 
 EVS2 <- EVS |> filter(COW_NUM %in% Countries)
 EVS2 %<>% mutate(catholic = case_when(F025 == 1 ~ 1,
@@ -638,4 +641,217 @@ combined_plot <- wrap_plots(plots4, nrow = 2, ncol = 2) +
 
 svg("Figures/WithoutRelig.svg", family = "cmr10", height = 5, width = 6)
 combined_plot
+dev.off()
+
+
+
+#####
+#Appendix 8
+#####
+#import dataset
+EVS_Trendfile <- read_dta("data/ZA7503_v2-0-0.dta")
+
+#set negative values (missing in EVS) to NA
+EVS_Trendfile[EVS_Trendfile < 0] <- NA
+#reverse code so higher values reflect more liberal attitudes
+EVSAge <- EVS_Trendfile %>% mutate(E035 = -1*E035 + 11)
+
+
+#reducing the dataset to studied variables
+EVSAge %<>% dplyr::select("E035", "E036", "E037", "E038", "E039", "E042", "F118", "F119", "F120",
+                            "F121", "F122", "F123", "F126", "F132", "F144_01", "F028", "S002EVS", "X003R", "COW_NUM")
+
+#Splitting the sample by age groups-----------------
+Age_EVSB1 <- EVSAge %>% subset(X003R == 1)
+Age_EVSB2 <- EVSAge %>% subset(X003R == 2)
+Age_EVSB3 <- EVSAge %>% subset(X003R == 3)
+Age_EVSB4 <- EVSAge %>% subset(X003R == 4)
+Age_EVSB5 <- EVSAge %>% subset(X003R == 5)
+Age_EVSB6 <- EVSAge %>% subset(X003R == 6)
+
+
+# Define function to compute correlations and flatten the results
+process_cohort <- function(dataset, rounds, countries, cultural_vars, economic_vars) {
+  # Compute correlations for each round and country
+  results <- expand.grid(round = rounds, country = countries) %>%
+    mutate(
+      corr_result = map2(round, country, ~{
+        data_subset <- dataset %>%
+          filter(S002EVS == .x, COW_NUM == .y) %>%
+          dplyr::select(E035:F144_01)
+        if (nrow(data_subset) > 4) {
+          tryCatch(rcorr(as.matrix(data_subset)), error = function(e) NULL)
+        } else {
+          NULL
+        }
+      })
+    ) %>%
+    filter(!map_lgl(corr_result, is.null))  # Remove failed computations
+  
+  # Flatten the results and annotate
+  flat_results <- pmap_dfr(
+    list(results$corr_result, results$round, results$country),
+    ~ {
+      flattenCorrMatrix(..1$r, ..1$P) %>%
+        mutate(
+          round = ..2,
+          Country = case_when(
+            ..3 == 205 ~ "Ireland", ..3 == 210 ~ "Netherlands", ..3 == 211 ~ "Belgium",
+            ..3 == 220 ~ "France", ..3 == 230 ~ "Spain", ..3 == 235 ~ "Portugal",
+            ..3 == 255 ~ "Germany", ..3 == 290 ~ "Poland", ..3 == 305 ~ "Austria",
+            ..3 == 310 ~ "Hungary", ..3 == 316 ~ "Czech Republic", ..3 == 317 ~ "Slovakia",
+            ..3 == 325 ~ "Italy", ..3 == 338 ~ "Malta", ..3 == 375 ~ "Finland",
+            ..3 == 380 ~ "Sweden", ..3 == 385 ~ "Norway", ..3 == 390 ~ "Denmark",
+            ..3 == 395 ~ "Iceland"
+          )
+        )
+    }
+  )
+  
+  
+  # Add domain information and clean up
+  flat_results %>%
+    mutate(domain = case_when(
+      (row %in% cultural_vars) & (column %in% cultural_vars) ~ "Cultural",
+      (row %in% economic_vars) & (column %in% economic_vars) ~ "Economic",
+      TRUE ~ "Across Domains"
+    )) %>%
+    unite("issue", row:column, remove = FALSE, sep = "-") %>%
+    dplyr::select("issue", "cor", "domain", "round", "Country")
+
+  
+  
+}
+
+
+# Define rounds, countries, and variable sets
+rounds <- 2:5
+countries <- c(205, 210, 211, 220, 230, 235, 255, 290, 305, 310, 316, 317, 325, 338, 375, 380, 385, 390, 395)
+cultural_vars <- c("F118", "F119", "F120", "F121", "F122", "F123", "F126", "F132", "F144_01")
+economic_vars <- c("E035", "E036", "E037", "E038", "E039", "E042")
+age_labels <- c("15-24", "25-34", "35-44", "45-54", "55-64", "65+")
+
+# Process cohorts using the function
+age_results <- map2_dfr(
+  list(Age_EVSB1, Age_EVSB2, Age_EVSB3, Age_EVSB4, Age_EVSB5, Age_EVSB6), 
+  age_labels, 
+  ~ suppressWarnings(
+    process_cohort(.x, rounds, countries, cultural_vars, economic_vars) %>%
+      mutate(Age = .y)
+  )
+)
+
+age_results <- merge(age_results, HDIData, by = c("Country", "round"))
+age_results <- merge(age_results, denom_data, by = c("Country"))
+
+age_results <- purrr::map_dfr(rounds, function(r) {
+  age_results %>%
+    filter(round == r) %>%
+    mutate(HDI = cut(HDI, 3, labels = c("lowest", "middle", "highest")))
+})
+
+age_results <- age_results %>% mutate(round = as.character(round))
+age_results$round <- ordered(age_results$round,
+                                 levels = c(2,3,4,5),
+                                 labels = c("1990", "1999", "2008", "2017"))
+
+age_results$Age <- ordered(age_results$Age,
+                                  levels = c("15-24", "25-34", "35-44", "45-54", "55-64", "65+"),
+                                  labels = c("15-24", "25-34", "35-44", "45-54", "55-64", "65+"))
+
+CohBCult = age_results |> filter(domain == "Cultural")
+
+T1 <- lmer(cor ~ Age + round + Age*round*HDI + (1|Country), data = CohBCult)
+
+new_data <- expand.grid(
+  Age = unique(CohBCult$Age),
+  round = unique(CohBCult$round),
+  HDI = unique(CohBCult$HDI),
+  Country = unique(CohBCult$Country)
+)
+
+pred <- predict(T1, newdata = new_data, re.form = NA, se.fit = TRUE)
+new_data$predicted <- pred$fit
+new_data$se.fit <- pred$se.fit
+new_data <- new_data %>%
+  mutate(
+    lower = predicted - 1.96 * se.fit,
+    upper = predicted + 1.96 * se.fit
+  )
+new_data = new_data |> mutate(HDI = case_when(HDI == "highest" ~ "Most Developed",
+                                              HDI == "lowest" ~ "Least Developed",
+                                              HDI == "middle" ~ "middle"))
+
+svg("Figures/IP Cohorts.svg", height = 4, width = 8, family = "cmr10")
+ggplot(new_data |> filter(round == "2017" | round == "1990") |> filter(!HDI == "middle"), aes(x = Age, y = predicted, color = round)) +
+  geom_point(size = 2) +
+  geom_line(aes(y = predicted, group = round), size = .9) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, group = round, fill = round), alpha = 0.2) +
+  facet_wrap(~HDI) +
+  labs(title = "",
+       x = "Age Cohort",
+       y = "",
+       color = "Round") +
+  scale_color_manual(values = c("2017" = "navy", "1990" = "firebrick4")) +
+  scale_fill_manual(values = c("2017" = "navy", "1990" = "firebrick4")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    strip.text = element_text(size = 10),
+    legend.position = "none",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9)
+  )
+dev.off()
+
+
+CohBCult <- CohBCult |>
+  mutate(religdiscrete = cut(DD, 3, labels = c("Protestant", "Mixed", "Catholic")))
+
+T2 <- lmer(cor ~ Age + round + Age*round*religdiscrete + (1|Country), data = CohBCult)
+
+new_data <- expand.grid(
+  Age = unique(CohBCult$Age),
+  round = unique(CohBCult$round),
+  religdiscrete = unique(CohBCult$religdiscrete),
+  Country = unique(CohBCult$Country)
+)
+
+pred <- predict(T2, newdata = new_data, re.form = NA, se.fit = TRUE)
+new_data$predicted <- pred$fit
+new_data$se.fit <- pred$se.fit
+new_data <- new_data %>%
+  mutate(
+    lower = predicted - 1.96 * se.fit,
+    upper = predicted + 1.96 * se.fit
+  )
+
+svg("Figures/IP Cohorts2.svg", height = 4, width = 8, family = "cmr10")
+ggplot(new_data |> filter(round == "2017" | round == "1990") |> filter(!religdiscrete == "Mixed"), aes(x = Age, y = predicted, color = round)) +
+  geom_point(size = 2) +
+  geom_line(aes(y = predicted, group = round), size = .9) +
+  geom_ribbon(aes(ymin = lower, ymax = upper, group = round, fill = round), alpha = 0.2) +
+  facet_wrap(~religdiscrete) +
+  labs(title = "",
+       x = "Age Cohort",
+       y = "",
+       color = "Round") +
+  scale_color_manual(values = c("2017" = "navy", "1990" = "firebrick4")) +
+  scale_fill_manual(values = c("2017" = "navy", "1990" = "firebrick4")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    strip.text = element_text(size = 10),
+    legend.position = "none",
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9)
+  )
 dev.off()
